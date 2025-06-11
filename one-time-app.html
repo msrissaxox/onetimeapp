@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>One-Time Experience</title>
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #1a1a1a;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .mysterious-button {
+            padding: 20px 40px;
+            font-size: 24px;
+            background: #ff3e3e;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 0 20px rgba(255, 62, 62, 0.5);
+        }
+
+        .mysterious-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(255, 62, 62, 0.8);
+        }
+
+        .mysterious-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .message {
+            color: white;
+            font-size: 18px;
+            margin-top: 20px;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        @keyframes explode {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.5; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        @keyframes implode {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(0.5); opacity: 0.5; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+
+        .particles {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #ff3e3e;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .mysterious-button {
+                padding: 15px 30px;
+                font-size: 20px;
+            }
+
+            .message {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="mysterious-button" id="theButton">PRESS ONCE</button>
+        <div class="message" id="message"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const button = document.getElementById('theButton');
+            const message = document.getElementById('message');
+            let hasBeenClicked = localStorage.getItem('buttonClicked') === 'true';
+
+            if (hasBeenClicked) {
+                button.disabled = true;
+                button.textContent = 'EXPIRED';
+                message.style.opacity = '1';
+                message.textContent = 'This experience has already been used.';
+                return;
+            }
+
+            function createParticle(x, y) {
+                const particle = document.createElement('div');
+                particle.className = 'particles';
+                document.body.appendChild(particle);
+
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = 5 + Math.random() * 5;
+                const dx = Math.cos(angle) * velocity;
+                const dy = Math.sin(angle) * velocity;
+
+                let posX = x;
+                let posY = y;
+
+                function animate() {
+                    posX += dx;
+                    posY += dy;
+                    particle.style.left = posX + 'px';
+                    particle.style.top = posY + 'px';
+                    particle.style.opacity = parseFloat(particle.style.opacity || 1) - 0.02;
+
+                    if (parseFloat(particle.style.opacity) > 0) {
+                        requestAnimationFrame(animate);
+                    } else {
+                        particle.remove();
+                    }
+                }
+
+                particle.style.left = x + 'px';
+                particle.style.top = y + 'px';
+                animate();
+            }
+
+            button.addEventListener('click', () => {
+                localStorage.setItem('buttonClicked', 'true');
+                button.disabled = true;
+
+                // Create explosion effect
+                const rect = button.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+
+                for (let i = 0; i < 30; i++) {
+                    createParticle(centerX, centerY);
+                }
+
+                // Random choice between imploding or exploding
+                const effect = Math.random() < 0.5 ? 'implode' : 'explode';
+                button.style.animation = `${effect} 1s forwards`;
+
+                setTimeout(() => {
+                    button.style.display = 'none';
+                    message.style.opacity = '1';
+                    message.textContent = 'The experience has been consumed.';
+                }, 1000);
+            });
+        });
+    </script>
+</body>
+</html>
